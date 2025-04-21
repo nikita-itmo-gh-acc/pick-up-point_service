@@ -17,9 +17,9 @@ type UserService interface {
 	Login(ctx context.Context, loginData objects.UserDto) error
 }
 
-type UService struct {
-	UserRepo repos.UserRepository
-}
+	type UService struct {
+		UserRepo repos.UserRepository
+	}
 
 func NewUserService(repo repos.UserRepository) *UService{
 	return &UService{

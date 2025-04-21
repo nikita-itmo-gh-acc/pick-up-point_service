@@ -1,7 +1,7 @@
 package database
 
 import (
-	"fmt"
+	"pvz_service/logger"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -15,7 +15,7 @@ type Migrator struct {
 func (m *Migrator) Init(path string, url string) error {
 	newMigrationTool, err := migrate.New("file://" + path, url)
 	if err != nil {
-		fmt.Println("Error occured trying to init migration tool - ", err)
+		logger.Err.Println("Error occured trying to init migration tool - ", err)
 		return err
 	}
 
@@ -26,29 +26,29 @@ func (m *Migrator) Init(path string, url string) error {
 func (m *Migrator) Apply() error {
 	err := m.migrationTool.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		fmt.Println("Can't apply migrations - ", err)
+		logger.Err.Println("Can't apply migrations - ", err)
 		return err
 	}
 	
 	if err == migrate.ErrNoChange {
-		fmt.Println("Nothing to apply")
+		logger.Debug.Println("Nothing to apply")
 	}
 
-	fmt.Println("Migration(s) applied successfully")
+	logger.Debug.Println("Migration(s) applied successfully")
 	return nil
 }
 
 func (m *Migrator) RollBack(steps int) error {
 	err := m.migrationTool.Steps(-steps)
 	if err != nil && err != migrate.ErrNoChange {
-		fmt.Println("Rollback failed - ", err)
+		logger.Err.Println("Rollback failed - ", err)
 		return err
 	}
 	
 	if err == migrate.ErrNoChange {
-		fmt.Println("Nothing to rollback")
+		logger.Debug.Println("Nothing to rollback")
 	}
 
-	fmt.Println("Rollback complete")
+	logger.Debug.Println("Rollback complete")
 	return nil
 }

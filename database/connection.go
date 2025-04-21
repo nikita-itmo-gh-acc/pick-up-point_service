@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"pvz_service/logger"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -44,18 +45,19 @@ func (c *DBConnection) createDB() error {
 
 func (c *DBConnection) InitPostgresConn() error {
 	if err := c.createDB(); err != nil {
-		fmt.Println("error occured during db creation - ", err)
+		logger.Err.Println("error occured during db creation - ", err)
 		return err
 	}
 
 	db, err := sql.Open("postgres", c.URL)
 
 	if err != nil {
-		fmt.Println("can't establish connection with database - ", err)
+		logger.Err.Println("can't establish connection with database - ", err)
 		return nil
 	}
 
 	c.DB = db
 
+	logger.Debug.Println("succesfully established database connection")
 	return db.Ping()
 }

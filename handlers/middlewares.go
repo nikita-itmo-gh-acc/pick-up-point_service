@@ -3,7 +3,20 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"pvz_service/logger"
+	"time"
 )
+
+type responseWrapper struct {
+	http.ResponseWriter
+	status      int
+}
+
+func (rw *responseWrapper) WriteHeader(code int) {
+	rw.status = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,4 +50,14 @@ func RequireRole(role string) func(http.Handler) http.Handler {
             next.ServeHTTP(w, r)
         })
     }
+}
+
+func AccessLogMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		wrapper := &responseWrapper{ ResponseWriter: w, status: 200 }
+		next.ServeHTTP(wrapper, r)
+		logger.Info.Printf("[%s] %s - %d, %s %s\n",
+			r.Method, r.URL.Path, wrapper.status, r.RemoteAddr, time.Since(start))
+	})
 }

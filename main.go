@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"pvz_service/database"
 	"pvz_service/handlers"
+	"pvz_service/logger"
 	"pvz_service/repos"
 	"pvz_service/services"
 
@@ -15,8 +15,9 @@ import (
 )
 
 func init() {
+	logger.DoConsoleLog()
 	if err := godotenv.Load(); err != nil {
-    	
+    	logger.Err.Fatalln("can't find .env file")
     }
 }
 
@@ -38,12 +39,12 @@ func main() {
 	migrator := &database.Migrator{}
 
 	if err := conn.InitPostgresConn(); err != nil {
-		fmt.Println("Can't create database connection: ", err)
+		logger.Err.Println("Can't create database connection: ", err)
 		return 
 	}
 
 	if err := migrator.Init(migrationsDir, dbUrl); err != nil {
-		fmt.Println("Can't create migrator: ", err)
+		logger.Err.Println("Can't create migrator: ", err)
 		return
 	}
 
@@ -81,5 +82,7 @@ func main() {
 	handleReceptions := Employee(handlers.AuthMiddleware(http.HandlerFunc(receptionHandler.CreateHandler)))
 	router.Handle("/receptions", handleReceptions).Methods("POST")
 
-	http.ListenAndServe(":" + port, router)
+	logger.Debug.Println("all handlers set up now...")
+	logger.Debug.Printf("start listening on %s port...\n", port)
+	http.ListenAndServe(":" + port, handlers.AccessLogMiddleware(router))
 }
